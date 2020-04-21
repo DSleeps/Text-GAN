@@ -78,9 +78,9 @@ for i in range(iteration_count):
 
         d_loss = d_loss_fn(d_outs.permute(0,2,1), d_desired)
 
-        d_optimizer.zero_grad()
+        d_optim.zero_grad()
         d_loss.backward()
-        d_optimizer.step()
+        d_optim.step()
         
     generator.train()
     discriminator.eval()
@@ -98,9 +98,7 @@ for i in range(iteration_count):
                                        # discriminator to think everything it outputs is real
         g_loss = loss_fn(d_outs, d_desired)
 
-        g_optimizer.zero_grad()
+        g_optim.zero_grad()
         g_loss.backward()
-        g_optimier.step()
-
-    
+        g_optim.step()
 
