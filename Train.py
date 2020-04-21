@@ -20,7 +20,7 @@ max_output_len = 25
 data, lengths, vocab, embedding_tensor = load_data('wikitext-2/wiki.test.tokens', max_seq_len)
 
 # Create the model
-model = EncoderDecoder(embedding_tensor, hidden_size, num_layers, embedding_tensor.shape[0], device)
+model = EncoderDecoder(embedding_tensor, hidden_size, num_layers, embedding_tensor.shape[0], device).to(device)
 
 # Initialize the loss and optimizer
 loss_fn = nn.NLLLoss()
