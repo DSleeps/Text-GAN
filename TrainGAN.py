@@ -8,8 +8,15 @@ import numpy as np
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(device)
 
+# Training_parameters
+g_times = 1
+d_times = 5
+batch_size = 32
+iteration_count = 10000
+max_output_len = 30
+
 # First load the dataset
-data, lengths, vocab, embedding_tensor = load_data('wikitext-2/wiki.train.tokens', max_seq_len)
+data, lengths, vocab, embedding_tensor = load_data('wikitext-2/wiki.train.tokens', max_output_len)
 
 # Generator parameters
 g_input_size = 100
@@ -43,13 +50,6 @@ a_file = 'Autoencoder.t'
 autoencoder = EncoderDecoder(embedding_tensor, a_hidden_size, a_num_layers, embedding_tensor.shape[0], device).to(device)
 autoencoder.load_state_dict(torch.load(a_file))
 autoencoder.eval()
-
-# Training_parameters
-g_times = 1
-d_times = 5
-batch_size = 32
-iteration_count = 10000
-max_output_len = 30
 
 # Start the training loop
 for i in range(iteration_count):
