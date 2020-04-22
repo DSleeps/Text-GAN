@@ -115,5 +115,6 @@ class Discriminator(nn.Module):
 
             # Run the hidden layer through the output model
             outputs[:,i] = self.output_model(torch.cat((output[:,0,:], c_vecs[:,0,:]), dim=1))
-
-        return outputs[:,-1]
+        
+        return outputs
+        #return outputs[:,-1]

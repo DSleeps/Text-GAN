@@ -4,6 +4,7 @@ from AutoEncoder import EncoderDecoder
 from GAN import Generator, Discriminator
 from LoadDataset import load_data
 import numpy as np
+import time
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(device)
@@ -16,12 +17,12 @@ iteration_count = 10000
 max_output_len = 30
 
 # First load the dataset
-data, lengths, vocab, embedding_tensor = load_data('wikitext-2/wiki.train.tokens', max_output_len)
+data, lengths, vocab, embedding_tensor = load_data('wikitext-103/wiki.train.tokens', max_output_len)
 inv_vocab = {v: k for k, v in vocab.items()}
 
 # Generator parameters
 g_input_size = 100
-g_hidden_size = 256
+g_hidden_size = 512
 g_output_size = embedding_tensor.shape[0] # The number of words in the vocab
 g_num_layers = 3
 g_head_count = 5
@@ -43,7 +44,7 @@ d_loss_fn = nn.NLLLoss()
 d_optim = torch.optim.Adam(discriminator.parameters(), lr=d_learning_rate)
 
 # AutoEncoder parameters
-a_hidden_size = 256
+a_hidden_size = 512
 a_num_layers = 2
 a_file = 'AutoEncoder.t'
 
@@ -57,7 +58,29 @@ def make_sentence(output):
         sentence += inv_vocab[w.item()] + ' '
     return sentence
 
+# This function takes outputs from the generator and the discriminator and returns the 
+# discriminator outputs that correspond to the eos tag of the generator inputs. This 
+# ensures it doesn't look past the periods
+def get_d_output(g_out, d_out):
+    # Converts it into the indices
+    i_output = torch.argmax(g_out, dim=2)
+    eos_index = vocab['.']
+    
+    # Find where all of the 'eos' tokens are
+    eos_indices = (i_output == eos_index).nonzero()
+    
+    # Here's a bunch of hacky stuff to get what I want
+    temp = torch.zeros(batch_size, max_output_len, dtype=torch.long).to(device)
+    temp[:] = max_output_len-1
+    temp[eos_indices[:,0],eos_indices[:,1]] = eos_indices[:,1]
+    
+    first_eos_indices = torch.min(temp, dim=1)
+
+    return d_out[torch.arange(0,batch_size),first_eos_indices.values]
+
+
 # Start the training loop
+start_time = time.time()
 for i in range(iteration_count):
     for d in range(d_times):
         # First generate the autoencoder outputs
@@ -79,7 +102,8 @@ for i in range(iteration_count):
         d_desired[int(batch_size/2):] = 1   # The second index is fake inputs
 
         d_outs = discriminator(d_inputs, max_output_len)
-        d_loss = d_loss_fn(d_outs, d_desired)
+        d_loss = d_loss_fn(get_d_output(d_inputs, d_outs), d_desired)
+        # d_loss = d_loss_fn(d_outs[:,-1], d_desired)
 
         d_optim.zero_grad()
         d_loss.backward()
@@ -100,13 +124,17 @@ for i in range(iteration_count):
         d_desired = torch.zeros(batch_size, dtype=torch.int64).to(device)
         d_desired[:batch_size] = 0   # The first index is real and the generator wants the
                                        # discriminator to think everything it outputs is real
-        g_loss = g_loss_fn(d_outs, d_desired)
+        g_loss = g_loss_fn(get_d_output(g_outs, d_outs), d_desired)
+        # g_loss = g_loss_fn(d_outs[:,-1], d_desired)
 
         g_optim.zero_grad()
         g_loss.backward()
         g_optim.step()
 
     if (i % 200 == 0):
-        print('Iteration ' + str(i))
+        # Calculate the time remaining
+        secs_per_iter = (time.time() - start_time)/(i + 1)
+        remaining_mins = int((secs_per_iter/60.) * (iteration_count - i))
+        print('Iteration ' + str(i) + ' | Time Remaining: ' + str(remaining_mins) + ' mins')
         print(g_loss)
         print(make_sentence(out_example))

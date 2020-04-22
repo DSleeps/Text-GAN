@@ -7,17 +7,17 @@ import numpy as np
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(device)
 
-hidden_size = 256
+hidden_size = 512
 num_layers = 2
 
-iteration_count = 10000
+iteration_count = 100000
 batch_size = 32
 learning_rate = 0.0005
 max_seq_len = 30
 max_output_len = 30
 
 # Load the dataset
-data, lengths, vocab, embedding_tensor = load_data('wikitext-2/wiki.train.tokens', max_seq_len)
+data, lengths, vocab, embedding_tensor = load_data('wikitext-103/wiki.train.tokens', max_seq_len)
 inv_vocab = {v: k for k, v in vocab.items()}
 
 # Create the model

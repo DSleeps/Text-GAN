@@ -23,6 +23,7 @@ print(data.shape)
 print(model(data, lengths, max_output_len))
 '''
 
+'''
 input_size = 30
 hidden_size = 50
 num_layers = 2
@@ -36,3 +37,27 @@ model = Generator(input_size, hidden_size, num_layers, output_size, head_count, 
 inputs = torch.randn(batch_size, max_output_len, input_size).to(device)
 
 print(model(inputs, max_output_len))
+'''
+
+batch_size = 20
+max_output_len = 30
+def get_d_output(g_out, d_out):
+    # Converts it into the indices
+    i_output = torch.argmax(g_out, dim=2)
+    eos_index = 5
+
+    # Find where all of the 'eos' tokens are
+    eos_indices = (i_output == eos_index).nonzero()
+
+    # Here's a bunch of hacky stuff to get what I want
+    temp = torch.zeros(batch_size, max_output_len, dtype=torch.long).to(device)
+    temp[:] = max_output_len-1
+    temp[eos_indices[:,0],eos_indices[:,1]] = eos_indices[:,1]
+
+    first_eos_indices = torch.min(temp, dim=1)
+    
+    return d_out[torch.arange(0,batch_size),first_eos_indices.values]
+
+d_outs = torch.randn(batch_size, max_output_len, 2).to(device)
+g_outs = torch.randn(batch_size, max_output_len, 6).to(device)
+print(get_d_output(g_outs, d_outs))
