@@ -48,7 +48,7 @@ def sentence_split(file_path):
                     t = t[1:-1]
 
                 if (t == '.'):
-                    sentences.append(sentence)
+                    sentences.append(sentence + '.')
                     sentence = []
                 else:
                     sentence.append(t)

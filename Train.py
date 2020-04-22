@@ -24,7 +24,8 @@ inv_vocab = {v: k for k, v in vocab.items()}
 model = EncoderDecoder(embedding_tensor, hidden_size, num_layers, embedding_tensor.shape[0], device).to(device)
 
 # Initialize the loss and optimizer
-loss_fn = nn.NLLLoss()
+PAD_INDEX = 0
+loss_fn = nn.NLLLoss(ignore_index=PAD_INDEX)
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 def make_sentence(output):
@@ -38,6 +39,7 @@ def convert_seq(seq):
     sentence = ''
     for w in seq:
         sentence += inv_vocab[w.item()] + ' '
+        print(w.item())
     return sentence
 
 for i in range(iteration_count):
