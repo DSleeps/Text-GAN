@@ -39,7 +39,6 @@ def convert_seq(seq):
     sentence = ''
     for w in seq:
         sentence += inv_vocab[w.item()] + ' '
-        print(w.item())
     return sentence
 
 for i in range(iteration_count):
