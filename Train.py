@@ -18,6 +18,7 @@ max_output_len = 30
 
 # Load the dataset
 data, lengths, vocab, embedding_tensor = load_data('wikitext-2/wiki.train.tokens', max_seq_len)
+inv_vocab = {v: k for k, v in vocab.items()}
 
 # Create the model
 model = EncoderDecoder(embedding_tensor, hidden_size, num_layers, embedding_tensor.shape[0], device).to(device)
@@ -25,6 +26,19 @@ model = EncoderDecoder(embedding_tensor, hidden_size, num_layers, embedding_tens
 # Initialize the loss and optimizer
 loss_fn = nn.NLLLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+def make_sentence(output):
+    maxes = torch.argmax(output, dim=1)
+    sentence = ''
+    for w in maxes:
+        sentence += inv_vocab[w.item()] + ' '
+    return sentence
+
+def convert_seq(seq):
+    sentence = ''
+    for w in seq:
+        sentence += inv_vocab[w.item()] + ' '
+    return sentence
 
 for i in range(iteration_count):
     # Pick a random batch
@@ -39,6 +53,8 @@ for i in range(iteration_count):
     if (i % 200 == 0):
         print('Iteration ' + str(i))
         print(loss)
+        print(make_sentence(outputs[-1]))
+        print(convert_seq(seqs[-1]))
 
     optimizer.zero_grad()
     loss.backward()
