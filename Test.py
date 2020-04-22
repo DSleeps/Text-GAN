@@ -2,6 +2,8 @@ import torch
 from AutoEncoder import EncoderDecoder
 from LoadDataset import load_data
 from GAN import Generator
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
 '''
 hidden_size = 10
 num_layers = 2
@@ -29,8 +31,8 @@ head_count = 5
 batch_size = 4
 max_output_len = 30
 
-model = Generator(input_size, hidden_size, num_layers, output_size, head_count, 'cpu')
+model = Generator(input_size, hidden_size, num_layers, output_size, head_count, device).to(device)
 
-inputs = torch.randn(batch_size, max_output_len, input_size)
+inputs = torch.randn(batch_size, max_output_len, input_size).to(device)
 
 print(model(inputs, max_output_len))

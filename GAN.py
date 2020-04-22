@@ -26,9 +26,9 @@ class Generator(nn.Module):
         batch_size = inputs.shape[0]
         outputs = torch.zeros(batch_size, max_output_len, self.output_size).to(self.device)
 
-        prev_hidden = torch.zeros(batch_size, self.num_layers, self.hidden_size)
-        prev_cell = torch.zeros(batch_size, self.num_layers, self.hidden_size)
-        hiddens = torch.zeros(batch_size, 1, self.hidden_size)
+        prev_hidden = torch.zeros(batch_size, self.num_layers, self.hidden_size).to(self.device)
+        prev_cell = torch.zeros(batch_size, self.num_layers, self.hidden_size).to(self.device)
+        hiddens = torch.zeros(batch_size, 1, self.hidden_size).to(self.device)
         for i in range(max_output_len):
             # Reformat the hidden layer to input into the attention model
             last_hidden =  prev_hidden[:,-1,:]
@@ -49,7 +49,7 @@ class Generator(nn.Module):
             c_vecs = torch.reshape(c_vecs, (batch_size, 1, self.hidden_size * self.head_count))
             
             # Now feed that into the model
-            output, outs = self.lstm(torch.cat((inputs[:,i:i+1,:], c_vecs), dim=2), (prev_hidden.permute(1,0,2), prev_cell.permute(1,0,2)))
+            output, outs = self.lstm(torch.cat((inputs[:,i:i+1,:], c_vecs), dim=2).contiguous(), (prev_hidden.permute(1,0,2).contiguous(), prev_cell.permute(1,0,2).contiguous()))
             
             prev_hidden = outs[0].permute(1,0,2)
             prev_cell = outs[1].permute(1,0,2)
@@ -84,9 +84,9 @@ class Discriminator(nn.Module):
         batch_size = inputs.shape[0]
         outputs = torch.zeros(batch_size, max_output_len, self.output_size).to(self.device)
 
-        prev_hidden = torch.zeros(batch_size, self.num_layers, self.hidden_size)
-        prev_cell = torch.zeros(batch_size, self.num_layers, self.hidden_size)
-        hiddens = torch.zeros(batch_size, 1, self.hidden_size)
+        prev_hidden = torch.zeros(batch_size, self.num_layers, self.hidden_size).to(self.device)
+        prev_cell = torch.zeros(batch_size, self.num_layers, self.hidden_size).to(self.device)
+        hiddens = torch.zeros(batch_size, 1, self.hidden_size).to(self.device)
         for i in range(max_output_len):
             # Reformat the hidden layer to input into the attention model
             last_hidden =  prev_hidden[:,-1,:]
@@ -107,7 +107,7 @@ class Discriminator(nn.Module):
             c_vecs = torch.reshape(c_vecs, (batch_size, 1, self.hidden_size * self.head_count))
             
             # Now feed that into the model
-            output, outs = self.lstm(torch.cat((inputs[:,i:i+1,:], c_vecs), dim=2), (prev_hidden.permute(1,0,2), prev_cell.permute(1,0,2)))
+            output, outs = self.lstm(torch.cat((inputs[:,i:i+1,:], c_vecs), dim=2).contiguous(), (prev_hidden.permute(1,0,2).contiguous(), prev_cell.permute(1,0,2).contiguous()))
             
             prev_hidden = outs[0].permute(1,0,2)
             prev_cell = outs[1].permute(1,0,2)

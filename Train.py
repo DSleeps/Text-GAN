@@ -13,11 +13,11 @@ num_layers = 2
 iteration_count = 10000
 batch_size = 32
 learning_rate = 0.0005
-max_seq_len = 25
-max_output_len = 25
+max_seq_len = 30
+max_output_len = 30
 
 # Load the dataset
-data, lengths, vocab, embedding_tensor = load_data('wikitext-2/wiki.test.tokens', max_seq_len)
+data, lengths, vocab, embedding_tensor = load_data('wikitext-2/wiki.train.tokens', max_seq_len)
 
 # Create the model
 model = EncoderDecoder(embedding_tensor, hidden_size, num_layers, embedding_tensor.shape[0], device).to(device)
@@ -43,3 +43,5 @@ for i in range(iteration_count):
     optimizer.zero_grad()
     loss.backward()
     optimizer.step()
+
+torch.save(model.state_dict(), 'AutoEncoder.t')
